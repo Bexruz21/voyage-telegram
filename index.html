@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Travel Guide 24/7</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        :root {
+            --blue: #2AABEE;
+            --blue-d: #1a8dc9;
+            --red: #e74c3c;
+            --green: #27ae60;
+            --orange: #f39c12;
+            --purple: #8e44ad
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #111);
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        /* HEADER */
+        #hdr {
+            background: var(--blue);
+            padding: 11px 14px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-shrink: 0;
+            min-height: 56px
+        }
+
+        .hdr-back {
+            background: rgba(255, 255, 255, .2);
+            border: none;
+            color: #fff;
+            font-size: 22px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0
+        }
+
+        .hdr-back.show {
+            display: flex
+        }
+
+        #hdr-av {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0
+        }
+
+        #hdr-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff
+        }
+
+        #hdr-sub {
+            font-size: 11px;
+            color: rgba(255, 255, 255, .82);
+            margin-top: 1px
+        }
+
+        /* SCREENS */
+        .screen {
+            flex: 1;
+            overflow: hidden;
+            display: none;
+            flex-direction: column
+        }
+
+        .screen.active {
+            display: flex
+        }
+
+        /* TABS */
+        #tabs {
+            display: flex;
+            background: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            border-bottom: 1px solid rgba(0, 0, 0, .08);
+            flex-shrink: 0
+        }
+
+        .tab {
+            flex: 1;
+            padding: 9px 4px;
+            font-size: 11px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--tg-theme-hint-color, #888);
+            border-bottom: 2px solid transparent;
+            transition: all .15s;
+            white-space: nowrap
+        }
+
+        .tab.active {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
+            font-weight: 600
+        }
+
+        .tab .ti {
+            font-size: 16px;
+            display: block;
+            margin-bottom: 2px
+        }
+
+        /* SCROLLABLE CONTENT */
+        .scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 12px 20px
+        }
+
+        .scroll::-webkit-scrollbar {
+            width: 3px
+        }
+
+        .scroll::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, .15);
+            border-radius: 2px
+        }
+
+        /* SEARCH */
+        .search-bar {
+            padding: 10px 12px;
+            background: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            border-bottom: 1px solid rgba(0, 0, 0, .07);
+            flex-shrink: 0
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 0, 0, .12);
+            font-size: 14px;
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #111);
+            outline: none
+        }
+
+        .search-bar input:focus {
+            border-color: var(--blue)
+        }
+
+        /* REGIONS */
+        .region-lbl {
+            padding: 10px 14px 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--tg-theme-hint-color, #888);
+            text-transform: uppercase;
+            letter-spacing: .6px
+        }
+
+        .dest-item {
+            display: flex;
+            align-items: center;
+            padding: 11px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(0, 0, 0, .05);
+            gap: 10px;
+            transition: background .1s
+        }
+
+        .dest-item:active {
+            background: var(--tg-theme-secondary-bg-color, #f4f4f5)
+        }
+
+        .dest-flag {
+            font-size: 22px;
+            width: 30px;
+            text-align: center;
+            flex-shrink: 0
+        }
+
+        .dest-info {
+            flex: 1
+        }
+
+        .dest-name {
+            font-size: 14px;
+            font-weight: 500
+        }
+
+        .dest-cities {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #888);
+            margin-top: 1px
+        }
+
+        /* CITY OVERLAY */
+        #city-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--tg-theme-bg-color, #fff);
+            display: none;
+            flex-direction: column;
+            z-index: 50
+        }
+
+        #city-overlay.show {
+            display: flex
+        }
+
+        .overlay-hdr {
+            background: var(--blue);
+            padding: 11px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0
+        }
+
+        .overlay-hdr .back {
+            background: rgba(255, 255, 255, .2);
+            border: none;
+            color: #fff;
+            font-size: 22px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .overlay-hdr .ttl {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff
+        }
+
+        .city-item {
+            display: flex;
+            align-items: center;
+            padding: 13px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(0, 0, 0, .05);
+            gap: 10px
+        }
+
+        .city-item:active {
+            background: var(--tg-theme-secondary-bg-color, #f4f4f5)
+        }
+
+        .city-icon {
+            font-size: 20px;
+            width: 28px;
+            text-align: center
+        }
+
+        .city-nm {
+            font-size: 15px;
+            font-weight: 500
+        }
+
+        .city-sb {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #888);
+            margin-top: 1px
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--tg-theme-hint-color, #888);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 10px
+        }
+
+        /* CONTEXT BANNER */
+        #ctx-banner {
+            background: linear-gradient(135deg, #1a8dc9, #2AABEE);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+            display: none
+        }
+
+        #ctx-banner.show {
+            display: block
+        }
+
+        .ctx-dest {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px
+        }
+
+        .ctx-btns {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap
+        }
+
+        .ctx-btn {
+            background: rgba(255, 255, 255, .22);
+            border: none;
+            color: #fff;
+            font-size: 12px;
+            padding: 7px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 500
+        }
+
+        .ctx-btn:active {
+            background: rgba(255, 255, 255, .35)
+        }
+
+        /* CURRENCY */
+        .curr-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .curr-card {
+            background: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: background .15s
+        }
+
+        .curr-card:active {
+            background: rgba(42, 171, 238, .12)
+        }
+
+        .curr-flag {
+            font-size: 22px
+        }
+
+        .curr-code {
+            font-size: 11px;
+            color: var(--tg-theme-hint-color, #888);
+            margin: 2px 0
+        }
+
+        .curr-rate {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--blue)
+        }
+
+        .curr-name {
+            font-size: 11px;
+            color: var(--tg-theme-hint-color, #888)
+        }
+
+        .curr-calc {
+            background: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            border-radius: 14px;
+            padding: 14px;
+            margin-top: 10px
+        }
+
+        .curr-calc input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, .12);
+            font-size: 16px;
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #111);
+            outline: none;
+            margin-bottom: 8px
+        }
+
+        .curr-result {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--blue);
+            text-align: center;
+            padding: 6px 0
+        }
+
+        /* SOCKET GRID */
+        .socket-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, .06)
+        }
+
+        .socket-row:last-child {
+            border-bottom: none
+        }
+
+        .socket-icon {
+            font-size: 26px;
+            width: 36px;
+            text-align: center
+        }
+
+        .socket-info {
+            flex: 1
+        }
+
+        .socket-type {
+            font-size: 14px;
+            font-weight: 500
+        }
+
+        .socket-volt {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #888)
+        }
+
+        .need-badge {
+            font-size: 11px;
+            padding: 3px 9px;
+            border-radius: 10px;
+            font-weight: 500
+        }
+
+        .need-yes {
+            background: #fde8e8;
+            color: #c0392b
+        }
+
+        .need-no {
+            background: #e8f8ef;
+            color: #1a7a3e
+        }
+
+        /* TIPS ROW */
+        .tip-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, .06)
+        }
+
+        .tip-row:last-child {
+            border-bottom: none
+        }
+
+        .tip-emoji {
+            font-size: 22px;
+            width: 30px;
+            text-align: center
+        }
+
+        .tip-place {
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1
+        }
+
+        .tip-amount {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--green);
+            text-align: right
+        }
+
+        /* PHRASES */
+        .phrase-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, .06)
+        }
+
+        .phrase-item:last-child {
+            border-bottom: none
+        }
+
+        .phrase-ru {
+            flex: 1
+        }
+
+        .phrase-local {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--blue)
+        }
+
+        .phrase-tr {
+            font-size: 11px;
+            color: var(--tg-theme-hint-color, #888);
+            margin-top: 2px
+        }
+
+        .speak-btn {
+            background: var(--blue);
+            border: none;
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0
+        }
+
+        /* EMERGENCY */
+        .emer-card {
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 10px
+        }
+
+        .emer-hdr {
+            background: var(--red);
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff
+        }
+
+        .emer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(0, 0, 0, .06);
+            background: var(--tg-theme-secondary-bg-color, #f4f4f5)
+        }
+
+        .emer-row:last-child {
+            border-bottom: none
+        }
+
+        .emer-label {
+            font-size: 13px
+        }
+
+        .emer-num {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--red)
+        }
+
+        .emer-call-btn {
+            background: var(--red);
+            border: none;
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 10px;
+            cursor: pointer
+        }
+
+        /* DOCS / SAFE */
+        .safe-locked {
+            text-align: center;
+            padding: 30px 20px
+        }
+
+        .safe-locked .lock-icon {
+            font-size: 48px;
+            margin-bottom: 12px
+        }
+
+        .safe-locked p {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #888);
+            margin-bottom: 16px;
+            line-height: 1.5
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            padding: 11px 24px;
+            border-radius: 22px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity .2s
+        }
+
+        .btn-primary:active {
+            opacity: .85
+        }
+
+        .doc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background .1s
+        }
+
+        .doc-item:active {
+            background: rgba(42, 171, 238, .1)
+        }
+
+        .doc-emoji {
+            font-size: 26px;
+            width: 34px;
+            text-align: center
+        }
+
+        .doc-name {
+            font-size: 14px;
+            font-weight: 500
+        }
+
+        .doc-sub {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #888);
+            margin-top: 1px
+        }
+
+        /* RULES */
+        .rule-section {
+            margin-bottom: 14px
+        }
+
+        .rule-section h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--blue);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .rule-row {
+            font-size: 13px;
+            line-height: 1.6;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, .05);
+            display: flex;
+            gap: 8px
+        }
+
+        .rule-row:last-child {
+            border-bottom: none
+        }
+
+        .rule-row .mark {
+            font-size: 14px;
+            flex-shrink: 0
+        }
+
+        /* CHAT */
+        #chat-msgs {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px
+        }
+
+        .mw {
+            display: flex;
+            flex-direction: column;
+            gap: 2px
+        }
+
+        .mw.u {
+            align-items: flex-end
+        }
+
+        .mw.b {
+            align-items: flex-start
+        }
+
+        .bub {
+            max-width: 82%;
+            padding: 9px 13px;
+            font-size: 14px;
+            line-height: 1.55;
+            word-break: break-word;
+            white-space: pre-wrap
+        }
+
+        .mw.u .bub {
+            background: var(--blue);
+            color: #fff;
+            border-radius: 16px 16px 4px 16px
+        }
+
+        .mw.b .bub {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            color: var(--tg-theme-text-color, #111);
+            border-radius: 16px 16px 16px 4px
+        }
+
+        .bub.typing {
+            color: var(--tg-theme-hint-color, #888);
+            font-style: italic
+        }
+
+        .bts {
+            font-size: 10px;
+            color: var(--tg-theme-hint-color, #888);
+            padding: 0 4px
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 2px
+        }
+
+        .qc {
+            font-size: 12px;
+            padding: 5px 11px;
+            border-radius: 16px;
+            border: 1px solid var(--blue);
+            color: var(--blue);
+            background: transparent;
+            cursor: pointer
+        }
+
+        .qc:active {
+            background: var(--blue);
+            color: #fff
+        }
+
+        #quick-row {
+            display: flex;
+            gap: 5px;
+            padding: 7px 10px 0;
+            overflow-x: auto;
+            flex-shrink: 0
+        }
+
+        #quick-row::-webkit-scrollbar {
+            display: none
+        }
+
+        .qb {
+            flex-shrink: 0;
+            font-size: 12px;
+            padding: 5px 11px;
+            border-radius: 14px;
+            border: 1px solid rgba(0, 0, 0, .12);
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-hint-color, #666);
+            cursor: pointer;
+            white-space: nowrap
+        }
+
+        .qb:active {
+            border-color: var(--blue);
+            color: var(--blue)
+        }
+
+        #inp-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 10px 10px;
+            border-top: 1px solid rgba(0, 0, 0, .07);
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            flex-shrink: 0;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom))
+        }
+
+        #msg-in {
+            flex: 1;
+            padding: 9px 13px;
+            border-radius: 22px;
+            border: 1px solid rgba(0, 0, 0, .13);
+            font-size: 14px;
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #111);
+            outline: none
+        }
+
+        #msg-in:focus {
+            border-color: var(--blue)
+        }
+
+        #snd {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--blue);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0
+        }
+
+        #snd:disabled {
+            opacity: .4
+        }
+
+        #snd svg {
+            width: 17px;
+            height: 17px;
+            fill: #fff
+        }
+
+        /* SOS */
+        #sos-fab {
+            position: fixed;
+            bottom: 80px;
+            right: 16px;
+            z-index: 40;
+            background: var(--red);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, .4);
+            display: none;
+            align-items: center;
+            gap: 6px
+        }
+
+        #sos-fab.show {
+            display: flex
+        }
+
+        /* AGENCY */
+        .agency-card {
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 10px
+        }
+
+        .agency-top {
+            background: var(--blue);
+            padding: 16px;
+            text-align: center
+        }
+
+        .agency-top .ag-logo {
+            font-size: 40px;
+            margin-bottom: 6px
+        }
+
+        .agency-top .ag-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff
+        }
+
+        .agency-top .ag-sub {
+            font-size: 12px;
+            color: rgba(255, 255, 255, .8);
+            margin-top: 3px
+        }
+
+        .contact-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, .06);
+            background: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            cursor: pointer;
+            text-decoration: none
+        }
+
+        .contact-btn:last-child {
+            border-bottom: none;
+            border-radius: 0 0 14px 14px
+        }
+
+        .contact-btn:active {
+            background: rgba(42, 171, 238, .1)
+        }
+
+        .contact-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0
+        }
+
+        .contact-icon.tg {
+            background: #2AABEE22
+        }
+
+        .contact-icon.wa {
+            background: #25D36622
+        }
+
+        .contact-txt .ctitle {
+            font-size: 14px;
+            font-weight: 500
+        }
+
+        .contact-txt .csub {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #888);
+            margin-top: 1px
+        }
+
+        /* EXCURSION FORM */
+        .form-group {
+            margin-bottom: 12px
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--tg-theme-hint-color, #888);
+            display: block;
+            margin-bottom: 5px
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 13px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, .12);
+            font-size: 14px;
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #111);
+            outline: none;
+            font-family: inherit
+        }
+
+        .form-group textarea {
+            resize: none;
+            height: 80px
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--blue)
+        }
+
+        /* WINE / REGIONAL */
+        .region-feature {
+            background: var(--tg-theme-secondary-bg-color, #f4f4f5);
+            border-radius: 12px;
+            padding: 13px;
+            margin-bottom: 8px
+        }
+
+        .region-feature h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .region-feature p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--tg-theme-text-color, #111)
+        }
+
+        /* TOAST */
+        #toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, .75);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            opacity: 0;
+            transition: opacity .3s;
+            pointer-events: none;
+            z-index: 100;
+            white-space: nowrap
+        }
+
+        #toast.show {
+            opacity: 1
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <div id="hdr">
+        <button class="hdr-back" id="back-btn" onclick="goBack()">‹</button>
+        <div id="hdr-av">✈️</div>
+        <div style="flex:1;min-width:0">
+            <div id="hdr-title">Travel Guide 24/7</div>
+            <div id="hdr-sub">Выберите страну и город</div>
+        </div>
+        <button id="sos-hdr-btn" onclick="showSOS()"
+            style="display:none;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:11px;font-weight:700;padding:5px 10px;border-radius:12px;cursor:pointer;flex-shrink:0">🆘
+            SOS</button>
+    </div>
+
+    <!-- SCREEN 1: DESTINATION SELECT -->
+    <div class="screen active" id="screen-dest">
+        <div class="search-bar">
+            <input placeholder="🔍  Поиск страны или города..." oninput="filterDests(this.value)" id="dest-search" />
+        </div>
+        <div class="scroll" id="dest-list"></div>
+    </div>
+
+    <!-- SCREEN 2: MAIN (with tabs) -->
+    <div class="screen" id="screen-main">
+        <div id="tabs">
+            <div class="tab active" onclick="switchTab('chat')" id="tab-chat"><span class="ti">💬</span>Гид</div>
+            <div class="tab" onclick="switchTab('tools')" id="tab-tools"><span class="ti">🛠</span>Утилиты</div>
+            <div class="tab" onclick="switchTab('docs')" id="tab-docs"><span class="ti">📁</span>Документы</div>
+            <div class="tab" onclick="switchTab('local')" id="tab-local"><span class="ti">🌍</span>Местное</div>
+            <div class="tab" onclick="switchTab('agency')" id="tab-agency"><span class="ti">🏢</span>Агентство</div>
+        </div>
+
+        <!-- TAB: CHAT -->
+        <div id="tab-chat-content" class="screen active" style="display:flex">
+            <div id="chat-msgs"></div>
+            <div id="quick-row"></div>
+            <div id="inp-row">
+                <input id="msg-in" placeholder="Спросите что угодно..." onkeydown="if(event.key==='Enter')sendMsg()" />
+                <button id="snd" onclick="sendMsg()"><svg viewBox="0 0 24 24">
+                        <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" />
+                    </svg></button>
+            </div>
+        </div>
+
+        <!-- TAB: TOOLS -->
+        <div id="tab-tools-content" class="screen" style="flex-direction:column">
+            <div class="scroll">
+                <!-- Context banner -->
+                <div id="ctx-banner" class="show">
+                    <div class="ctx-dest" id="ctx-dest-txt">📍 Выберите место</div>
+                    <div class="ctx-btns" id="ctx-btns"></div>
+                </div>
+                <!-- Currency -->
+                <div class="card">
+                    <div class="card-title">💱 Конвертер валют (live)</div>
+                    <div class="curr-grid" id="curr-grid"></div>
+                    <div class="curr-calc">
+                        <div style="display:flex;gap:8px;margin-bottom:8px">
+                            <select id="curr-from"
+                                style="flex:1;padding:8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);font-size:13px;background:var(--tg-theme-bg-color,#fff);color:var(--tg-theme-text-color,#111);outline:none"></select>
+                            <select id="curr-to"
+                                style="flex:1;padding:8px;border-radius:10px;border:1px solid rgba(0,0,0,.12);font-size:13px;background:var(--tg-theme-bg-color,#fff);color:var(--tg-theme-text-color,#111);outline:none"></select>
+                        </div>
+                        <input type="number" id="curr-amount" value="100" placeholder="Сумма" oninput="calcCurrency()"
+                            style="margin-bottom:6px" />
+                        <div class="curr-result" id="curr-result">— введите сумму —</div>
+                        <div style="font-size:11px;color:var(--tg-theme-hint-color,#888);text-align:center;margin-top:4px"
+                            id="curr-updated"></div>
+                    </div>
+                </div>
+                <!-- Emergency -->
+                <div class="card">
+                    <div class="card-title">🚨 Экстренные номера</div>
+                    <div id="emer-numbers"></div>
+                </div>
+                <!-- Maps -->
+                <div class="card">
+                    <div class="card-title">🗺 Открыть карту</div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn-primary" style="flex:1;font-size:13px" onclick="openMaps('google')">📍 Google
+                            Maps</button>
+                        <button class="btn-primary" style="flex:1;font-size:13px;background:#555"
+                            onclick="openMaps('apple')">🍎 Apple Maps</button>
+                    </div>
+                    <div style="font-size:12px;color:var(--tg-theme-hint-color,#888);margin-top:8px;text-align:center">
+                        Откроет карту с текущим местоположением</div>
+                </div>
+                <!-- Regional feature -->
+                <div id="regional-feature"></div>
+            </div>
+        </div>
+
+        <!-- TAB: DOCS -->
+        <div id="tab-docs-content" class="screen" style="flex-direction:column">
+            <div class="scroll">
+                <!-- Import/Export rules -->
+                <div class="card">
+                    <div class="card-title">🛃 Правила ввоза и вывоза</div>
+                    <div id="customs-rules"></div>
+                </div>
+                <!-- Dress code -->
+                <div class="card">
+                    <div class="card-title">👗 Дресс-код</div>
+                    <div id="dress-code"></div>
+                </div>
+                <!-- Safe docs -->
+                <div class="card">
+                    <div class="card-title">🔐 Мой сейф (документы)</div>
+                    <div id="safe-section"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: LOCAL -->
+        <div id="tab-local-content" class="screen" style="flex-direction:column">
+            <div class="scroll">
+                <!-- Sockets -->
+                <div class="card">
+                    <div class="card-title">🔌 Розетки и электричество</div>
+                    <div id="socket-info"></div>
+                </div>
+                <!-- Tips -->
+                <div class="card">
+                    <div class="card-title">💸 Чаевые — сколько давать</div>
+                    <div id="tips-info"></div>
+                </div>
+                <!-- Phrases -->
+                <div class="card">
+                    <div class="card-title">🗣 Словарь выживания</div>
+                    <div id="phrases-info"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: AGENCY -->
+        <div id="tab-agency-content" class="screen" style="flex-direction:column">
+            <div class="scroll">
+                <div class="agency-card">
+                    <div class="agency-top">
+                        <div class="ag-logo">✈️</div>
+                        <div class="ag-name">Voyage Trip</div>
+                        <div class="ag-sub">Ваше тур агентство • 24/7</div>
+                    </div>
+                    <a class="contact-btn" href="https://t.me/voyagetrip" target="_blank">
+                        <div class="contact-icon tg">💬</div>
+                        <div class="contact-txt">
+                            <div class="ctitle">Telegram</div>
+                            <div class="csub">@voyagetrip — написать менеджеру</div>
+                        </div>
+                        <div style="color:var(--tg-theme-hint-color,#888);margin-left:auto">›</div>
+                    </a>
+                    <a class="contact-btn" href="https://wa.me/998908810333" target="_blank">
+                        <div class="contact-icon wa">📱</div>
+                        <div class="contact-txt">
+                            <div class="ctitle">WhatsApp</div>
+                            <div class="csub">+998 90 881 03 33</div>
+                        </div>
+                        <div style="color:var(--tg-theme-hint-color,#888);margin-left:auto">›</div>
+                    </a>
+                </div>
+                <!-- SOS block -->
+                <div class="card" style="border:2px solid var(--red)">
+                    <div class="card-title" style="color:var(--red)">🆘 Экстренная связь с куратором</div>
+                    <p style="font-size:13px;line-height:1.6;margin-bottom:12px;color:var(--tg-theme-text-color,#111)">
+                        Потерял документы, заболел, нужна срочная помощь — куратор ответит в течение 15 минут.</p>
+                    <div style="display:flex;gap:8px">
+                        <a href="https://t.me/voyagetrip" target="_blank" style="flex:1;text-decoration:none"><button
+                                class="btn-primary" style="width:100%;background:var(--red)">🆘 SOS в
+                                Telegram</button></a>
+                        <a href="https://wa.me/998908810333?text=🆘 Нужна срочная помощь!" target="_blank"
+                            style="flex:1;text-decoration:none"><button class="btn-primary"
+                                style="width:100%;background:#25D366">🆘 SOS WhatsApp</button></a>
+                    </div>
+                </div>
+                <!-- Excursion form -->
+                <div class="card">
+                    <div class="card-title">🏝 Запрос на экскурсию</div>
+                    <div class="form-group">
+                        <label>Ваше имя</label>
+                        <input type="text" id="ex-name" placeholder="Введите имя" />
+                    </div>
+                    <div class="form-group">
+                        <label>Куда хотите поехать / что посмотреть</label>
+                        <textarea id="ex-wish"
+                            placeholder="Например: хочу на острова с дайвингом, или экскурсия на пирамиды..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Дата и количество человек</label>
+                        <input type="text" id="ex-date" placeholder="Например: 20 июля, 2 взрослых + 1 ребёнок" />
+                    </div>
+                    <button class="btn-primary" style="width:100%" onclick="sendExcursionRequest()">📩 Отправить запрос
+                        менеджеру</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CITY OVERLAY -->
+    <div id="city-overlay">
+        <div class="overlay-hdr">
+            <button class="back" onclick="closeCityOverlay()">‹</button>
+            <div class="ttl" id="city-overlay-title">Выберите город</div>
+        </div>
+        <div class="scroll" id="city-list"></div>
+    </div>
+
+    <!-- SOS FAB -->
+    <button id="sos-fab" onclick="showSOS()">🆘 SOS</button>
+
+    <!-- TOAST -->
+    <div id="toast"></div>
+
+    <script>
+        // ═══════════════════════════════
+        const API_KEY = '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';
+        // ═══════════════════════════════
+
+        const DESTINATIONS = [
+            {
+                region: '🌴 Ближний Восток', countries: [
+                    {
+                        flag: '🇦🇿', name: 'Азербайджан', id: 'az',
+                        cities: [{ name: 'Баку', icon: '🏙', sub: 'Столица, Старый город Ичери-Шехер' }],
+                        emergency: { police: '102', ambulance: '103', fire: '101', taxi: '195 / Bolt App' },
+                        socket: { type: 'C/F', volt: '220V', note: 'Стандартные европейские розетки', need: false },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10%' }, { place: 'Такси', amount: 'Не принято' }, { place: 'Отель', amount: '2-3 AZN' }],
+                        phrases: [{ ru: 'Привет', local: 'Salam', tr: 'Са-лам' }, { ru: 'Спасибо', local: 'Sağ ol', tr: 'Сах ол' }, { ru: 'Помогите', local: 'Kömək edin', tr: 'Кёмяк эдин' }, { ru: 'Где туалет?', local: 'Tualet hardadır?', tr: 'Туалет хардадыр' }, { ru: 'Сколько стоит?', local: 'Nə qədərdir?', tr: 'Нэ гядардир' }],
+                        customs: { in: ['Алкоголь до 2л бесплатно', 'Табак до 200 сигарет', 'Электроника — декларировать'], out: ['Антиквариат — нужно разрешение', 'Сувениры — без ограничений'] },
+                        dresscode: 'Светская страна. В мечетях — покрыть голову и плечи, снять обувь.',
+                        region_feature: null,
+                        taxi_app: 'Bolt / Yandex Go',
+                        currency_code: 'AZN'
+                    },
+                    {
+                        flag: '🇦🇪', name: 'ОАЭ', id: 'uae',
+                        cities: [
+                            { name: 'Дубай / Dubai', icon: '🏙', sub: 'Бурдж-Халифа, шопинг, пляжи' },
+                            { name: 'Абу-Даби / Abu Dhabi', icon: '🕌', sub: 'Столица, Мечеть Шейха Зайда' },
+                            { name: 'Аджман / Ajman', icon: '🏖', sub: 'Тихий эмират, пляжи' },
+                            { name: 'Фуджейра / Fujairah', icon: '⛰', sub: 'Горы, Индийский океан' },
+                            { name: 'Рас-эль-Хайма / RAK', icon: '🏔', sub: 'Горы, экотуризм' },
+                            { name: 'Шарджа / Sharjah', icon: '🎨', sub: 'Культура и искусство' },
+                            { name: 'Умм-эль-Кайвайн / UAQ', icon: '🌊', sub: 'Спокойный эмират' }
+                        ],
+                        emergency: { police: '999', ambulance: '998', fire: '997', taxi: 'Dubai Taxi: 04-208-0808 / Careem' },
+                        socket: { type: 'G (UK)', volt: '220V', note: 'Нужен переходник под вилки типа G (британский)', need: true },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10-15%' }, { place: 'Такси', amount: 'Округлить' }, { place: 'Отель', amount: '5-10 AED' }, { place: 'Доставка', amount: '5 AED' }],
+                        phrases: [{ ru: 'Привет', local: 'مرحبا (Marhaba)', tr: 'Мар-ха-ба' }, { ru: 'Спасибо', local: 'شكراً (Shukran)', tr: 'Шук-ран' }, { ru: 'Помогите', local: 'ساعدني (Saaedni)', tr: 'Са-ид-ни' }, { ru: 'Где туалет?', local: 'أين الحمام؟', tr: 'Айн аль-хаммам' }, { ru: 'Слишком дорого', local: 'هذا غالي جداً', tr: 'Хаза гали джиддан' }],
+                        customs: { in: ['Алкоголь до 4л (только нем.), только в Dubai', 'Табак до 400 сигарет', 'Лекарства — нужна справка'], out: ['Антиквариат — разрешение', 'Дирхамы вывозить можно'] },
+                        dresscode: 'В торговых центрах — прикрывать плечи и колени. В мечетях — абайя (выдают). На пляже — купальник допустим.',
+                        region_feature: { title: '📅 Рамадан и праздники', text: 'В Рамадан нельзя есть/пить/курить на улице с рассвета до заката. Рестораны закрыты или занавешены днём. Ночью — особая атмосфера и длинный режим работы. Проверяйте даты Рамадана перед поездкой.' },
+                        taxi_app: 'Careem / Uber',
+                        currency_code: 'AED'
+                    },
+                    {
+                        flag: '🇶🇦', name: 'Катар', id: 'qatar',
+                        cities: [{ name: 'Доха', icon: '🏙', sub: 'Столица, Souq Waqif, музей исламского искусства' }],
+                        emergency: { police: '999', ambulance: '999', fire: '999', taxi: 'Karwa: +974 4458-8888 / Uber' },
+                        socket: { type: 'G (UK)', volt: '240V', note: 'Нужен переходник под вилки типа G', need: true },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10%' }, { place: 'Такси', amount: 'Не принято' }, { place: 'Отель', amount: '5-10 QAR' }],
+                        phrases: [{ ru: 'Привет', local: 'مرحبا (Marhaba)', tr: 'Мар-ха-ба' }, { ru: 'Спасибо', local: 'شكراً (Shukran)', tr: 'Шук-ран' }, { ru: 'Помогите', local: 'ساعدني', tr: 'Са-ид-ни' }, { ru: 'Сколько?', local: 'بكم هذا؟', tr: 'Бикам хаза' }, { ru: 'Вода', local: 'ماء (Maa)', tr: 'Ма-а' }],
+                        customs: { in: ['Алкоголь ЗАПРЕЩЁН (только в отелях)', 'Свинина запрещена', 'Лекарства — нужна справка'], out: ['Предметы исламского искусства — разрешение'] },
+                        dresscode: 'Публичные места — прикрытые плечи и колени для обоих полов. В мечетях — полное покрытие.',
+                        region_feature: { title: '📅 Рамадан в Катаре', text: 'Строжайший дресс-код в Рамадан. Публичное употребление пищи — штраф. Рестораны работают только для туристов внутри. Ночью Souq Waqif особенно красив.' },
+                        taxi_app: 'Uber / Careem',
+                        currency_code: 'QAR'
+                    }
+                ]
+            },
+            {
+                region: '🌏 Юго-Восточная Азия', countries: [
+                    {
+                        flag: '🇹🇭', name: 'Таиланд', id: 'th',
+                        cities: [
+                            { name: 'Бангкок', icon: '🏙', sub: 'Столица, храмы Ват Пхо и Ват Арун, Каосан' },
+                            { name: 'Пхукет', icon: '🏖', sub: 'Патонг, пляжи, ночная жизнь' },
+                            { name: 'Краби', icon: '⛰', sub: 'Острова Пхи-Пхи, скалы, каяки' },
+                            { name: 'Паттайя', icon: '🌊', sub: 'Пляжи, парки, Волкинг Стрит' },
+                            { name: 'Као Лак', icon: '🌿', sub: 'Тихий курорт, природа, нац. парк' },
+                            { name: 'Пханг Нга', icon: '🚣', sub: 'Бухта, каяки, мангровые леса' },
+                            { name: 'Хуа Хин', icon: '🐘', sub: 'Королевский курорт, спокойный' },
+                            { name: 'Районг', icon: '🏝', sub: 'Острова Ко Самет и Ко Чанг' }
+                        ],
+                        emergency: { police: '191', ambulance: '1669', fire: '199', taxi: 'Grab App / inDriver' },
+                        socket: { type: 'A/B/C', volt: '220V', note: 'Совместимы с большинством вилок. Иногда нужен переходник A/B.', need: false },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '20-50 THB' }, { place: 'Тук-тук', amount: 'Торгуйтесь' }, { place: 'Массаж', amount: '50-100 THB' }, { place: 'Такси', amount: 'Округлить' }, { place: 'Отель', amount: '20-50 THB' }],
+                        phrases: [{ ru: 'Привет', local: 'สวัสดี (Sawadee)', tr: 'Са-ва-ди' }, { ru: 'Спасибо', local: 'ขอบคุณ (Khob Khun)', tr: 'Кхоп-кхун' }, { ru: 'Помогите', local: 'ช่วยด้วย (Chuay duay)', tr: 'Чуай-дуай' }, { ru: 'Слишком дорого', local: 'แพงเกินไป', tr: 'Пхэнг-коен-пай' }, { ru: 'Вкусно!', local: 'อร่อยมาก (Aroi mak)', tr: 'А-рой-мак' }],
+                        customs: { in: ['Алкоголь до 1л бесплатно', 'Табак до 200 сигарет', 'Вейп ЗАПРЕЩЁН — штраф'], out: ['Изображения Будды — ограничения', 'Свежие фрукты — запрещено', 'Антиквариат — разрешение'] },
+                        dresscode: 'В храмах — плечи и колени закрыты, снять обувь. Купальники только на пляже.',
+                        region_feature: { title: '🌊 Приливы и сезоны', text: 'Пхукет: лучший сезон ноябрь-апрель. Май-октябрь — муссон на западном побережье. Краби и Ко Ланта — те же сроки. Паттайя и восточное побережье — сухо круглый год. Проверяйте погоду перед заплывом.' },
+                        taxi_app: 'Grab / inDriver',
+                        currency_code: 'THB'
+                    },
+                    {
+                        flag: '🇻🇳', name: 'Вьетнам', id: 'vn',
+                        cities: [
+                            { name: 'Дананг', icon: '🌉', sub: 'Мост Дракона, пляж Ми Кхе, Хойан рядом' },
+                            { name: 'Нячанг', icon: '🏖', sub: 'Пляжи, острова, дайвинг' },
+                            { name: 'Фантьет', icon: '🏄', sub: 'Муйне, красные дюны, кайтсёрфинг' },
+                            { name: 'Фукуок', icon: '🏝', sub: 'Остров, жемчуг, закаты, джунгли' }
+                        ],
+                        emergency: { police: '113', ambulance: '115', fire: '114', taxi: 'Grab App' },
+                        socket: { type: 'A/C/F', volt: '220V', note: 'Обычно совместимо. Иногда нужен переходник.', need: false },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10% или 20-50k VND' }, { place: 'Такси/Grab', amount: 'Не принято' }, { place: 'Массаж', amount: '30-50k VND' }, { place: 'Носильщик', amount: '20-30k VND' }],
+                        phrases: [{ ru: 'Привет', local: 'Xin chào', tr: 'Синь-чяо' }, { ru: 'Спасибо', local: 'Cảm ơn', tr: 'Кам-ун' }, { ru: 'Помогите', local: 'Cứu tôi với', tr: 'Кыу-той-вой' }, { ru: 'Слишком дорого', local: 'Đắt quá', tr: 'Дат-куа' }, { ru: 'Вкусно', local: 'Ngon lắm', tr: 'Нгон-лам' }],
+                        customs: { in: ['Алкоголь до 1.5л', 'Табак до 200 сигарет'], out: ['Лакированные изделия — ограничения', 'Дерево — нужны документы'] },
+                        dresscode: 'В храмах — плечи и колени закрыты. В целом свободный стиль.',
+                        region_feature: null,
+                        taxi_app: 'Grab App',
+                        currency_code: 'VND'
+                    },
+                    {
+                        flag: '🇮🇩', name: 'Индонезия', id: 'id',
+                        cities: [{ name: 'Бали', icon: '🌺', sub: 'Убуд, Семиньяк, Чангу, Кута, Улувату' }],
+                        emergency: { police: '110', ambulance: '118', fire: '113', taxi: 'Gojek / Grab App' },
+                        socket: { type: 'C/F', volt: '230V', note: 'Стандартные европейские розетки, переходник обычно не нужен.', need: false },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10% или 20-50k IDR' }, { place: 'Гид', amount: '100-200k IDR' }, { place: 'Массаж', amount: '50k IDR' }, { place: 'Водитель', amount: '50-100k IDR' }],
+                        phrases: [{ ru: 'Привет', local: 'Halo / Selamat', tr: 'Ха-ло' }, { ru: 'Спасибо', local: 'Terima kasih', tr: 'Тэ-ри-ма-ка-сих' }, { ru: 'Помогите', local: 'Tolong!', tr: 'То-лонг' }, { ru: 'Сколько?', local: 'Berapa harganya?', tr: 'Бэ-ра-па' }, { ru: 'Вкусно', local: 'Enak sekali', tr: 'Э-нак-сэ-ка-ли' }],
+                        customs: { in: ['Алкоголь до 1л', 'Табак до 200 сигарет'], out: ['Кораллы — запрещено', 'Сувениры из слоновой кости — запрещено'] },
+                        dresscode: 'В храмах — обязателен саронг (выдают или купить за 20-30k IDR). На улице — свободно.',
+                        region_feature: { title: '🌊 Приливы на Бали', text: 'Улувату и южные пляжи — следите за приливами. Расписание приливов: willyweather.com. Сезон для сёрфинга: апрель-октябрь. Сезон дождей: ноябрь-март. Чангу — хорош круглый год.' },
+                        taxi_app: 'Gojek / Grab',
+                        currency_code: 'IDR'
+                    },
+                    {
+                        flag: '🇲🇾', name: 'Малайзия', id: 'my',
+                        cities: [
+                            { name: 'Куала-Лумпур', icon: '🏙', sub: 'Башни Петронас, Бату Кейвз, шопинг' },
+                            { name: 'Лангкави', icon: '🏝', sub: 'Острова, дьюти-фри, мангровые туры' },
+                            { name: 'Десару', icon: '🌊', sub: 'Курорт, Джохор, тихие пляжи' }
+                        ],
+                        emergency: { police: '999', ambulance: '999', fire: '994', taxi: 'Grab App' },
+                        socket: { type: 'G (UK)', volt: '240V', note: 'Нужен переходник под вилки типа G (британский стандарт)', need: true },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10% (часто включено)' }, { place: 'Такси/Grab', amount: 'Не принято' }, { place: 'Отель', amount: '5-10 MYR' }],
+                        phrases: [{ ru: 'Привет', local: 'Helo / Selamat', tr: 'Хэ-ло' }, { ru: 'Спасибо', local: 'Terima kasih', tr: 'Тэ-ри-ма-ка-сих' }, { ru: 'Помогите', local: 'Tolong!', tr: 'То-лонг' }, { ru: 'Сколько?', local: 'Berapa?', tr: 'Бэ-ра-па' }, { ru: 'Вкусно', local: 'Sedap!', tr: 'Сэ-дап' }],
+                        customs: { in: ['Алкоголь до 1л (только нем.)', 'Лекарства с рецептом'], out: ['Пальмовое масло — лицензия', 'Сувениры — свободно'] },
+                        dresscode: 'Мечети — покрыть всё тело. В городе — умеренно закрытая одежда. На пляже — свободно.',
+                        region_feature: null,
+                        taxi_app: 'Grab App',
+                        currency_code: 'MYR'
+                    },
+                    {
+                        flag: '🇸🇬', name: 'Сингапур', id: 'sg',
+                        cities: [{ name: 'Сингапур', icon: '🦁', sub: 'Марина Бей Сэндс, Сентоза, Gardens by the Bay' }],
+                        emergency: { police: '999', ambulance: '995', fire: '995', taxi: 'ComfortDelGro: 6552-1111 / Grab' },
+                        socket: { type: 'G (UK)', volt: '230V', note: 'Нужен переходник под вилки типа G', need: true },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10% (включено в счёт)' }, { place: 'Такси', amount: 'Не принято' }, { place: 'Хокер-центры', amount: 'Не принято' }],
+                        phrases: [{ ru: 'Привет', local: 'Hello / Lah', tr: 'Хэ-ло-ла' }, { ru: 'Спасибо', local: 'Thank you / Terima kasih', tr: 'Тэнк-ю' }, { ru: 'Вкусно', local: 'Shiok!', tr: 'Шиок' }, { ru: 'Понятно', local: 'Can lah', tr: 'Кэн-ла' }, { ru: 'Помогите', local: 'Help! / Tolong!', tr: 'Хелп' }],
+                        customs: { in: ['Сигареты — строго до 1 пачки', 'Жвачка ЗАПРЕЩЕНА к ввозу', 'Лекарства — нужна справка'], out: ['Без ограничений для сувениров'] },
+                        dresscode: 'Свободно. В храмах — снять обувь, прикрыть плечи.',
+                        region_feature: null,
+                        taxi_app: 'Grab / Gojek',
+                        currency_code: 'SGD'
+                    },
+                    {
+                        flag: '🇨🇳', name: 'Китай (о. Хайнань)', id: 'cn',
+                        cities: [{ name: 'О. Хайнань', icon: '🏖', sub: 'Санья, Хайкоу — тропический рай' }],
+                        emergency: { police: '110', ambulance: '120', fire: '119', taxi: 'DiDi App' },
+                        socket: { type: 'A/I', volt: '220V', note: 'Тип I (Австралийский) + тип A. Нужен переходник.', need: true },
+                        tips_gratuity: [{ place: 'Ресторан', amount: 'Не принято' }, { place: 'Гид', amount: '50-100 CNY' }, { place: 'Отель', amount: '10-20 CNY' }],
+                        phrases: [{ ru: 'Привет', local: '你好 (Nǐ hǎo)', tr: 'Ни-хао' }, { ru: 'Спасибо', local: '谢谢 (Xièxiè)', tr: 'Се-се' }, { ru: 'Помогите', local: '救命 (Jiùmìng)', tr: 'Цзю-мин' }, { ru: 'Сколько стоит?', local: '多少钱？(Duōshǎo qián)', tr: 'Дуо-шао-цянь' }, { ru: 'Вода', local: '水 (Shuǐ)', tr: 'Шуэй' }],
+                        customs: { in: ['Алкоголь до 1.5л', 'Валюта свыше $5000 — декларировать'], out: ['Антиквариат — запрещено без разрешения', 'Панды (сувениры) — без ограничений'] },
+                        dresscode: 'Свободный стиль. В буддийских храмах — скромная одежда.',
+                        region_feature: null,
+                        taxi_app: 'DiDi App',
+                        currency_code: 'CNY'
+                    }
+                ]
+            },
+            {
+                region: '🌊 Индийский океан', countries: [
+                    {
+                        flag: '🇲🇻', name: 'Мальдивы', id: 'mv',
+                        cities: [{ name: 'Мальдивы', icon: '🏝', sub: 'Атоллы Мале, Ари, Баа — бунгало над водой' }],
+                        emergency: { police: '119', ambulance: '102', fire: '118', taxi: 'Трансфер отеля / скутер' },
+                        socket: { type: 'G (UK)', volt: '230V', note: 'Нужен переходник типа G — возьмите с собой!', need: true },
+                        tips_gratuity: [{ place: 'Ресторан (resort)', amount: '$2-5 USD' }, { place: 'Дайв-инструктор', amount: '$10-20' }, { place: 'Персонал виллы', amount: '$5-10/день' }],
+                        phrases: [{ ru: 'Привет', local: 'ہيلو (Marhabaa)', tr: 'Мар-ха-ба' }, { ru: 'Спасибо', local: 'ޝުކުރިއްޔާ (Shukuriyya)', tr: 'Шу-ку-рий-я' }, { ru: 'Красиво!', local: 'ރީތި (Reethi)', tr: 'Ри-ти' }, { ru: 'Вкусно', local: 'މީރު (Meeru)', tr: 'Ми-ру' }, { ru: 'Пожалуйста', local: 'ކަމޭ (Kamey)', tr: 'Ка-мей' }],
+                        customs: { in: ['Алкоголь ЗАПРЕЩЁН (только на resort islands)', 'Свинина запрещена', 'Израильский паспорт — въезд запрещён'], out: ['Кораллы и ракушки — запрещено', 'Сувениры — свободно'] },
+                        dresscode: 'На курортных островах — свободно. На местных островах — плечи и колени закрыты обязательно.',
+                        region_feature: { title: '🌊 Приливы и снорклинг', text: 'Лучшее время для снорклинга — прилив. Черепах и манту чаще видят утром. Сезон: ноябрь-апрель. Сезон дождей: май-октябрь (но жить приятно). Защита от солнца SPF50 — строго обязательна.' },
+                        taxi_app: 'Трансфер отеля / скоростной катер',
+                        currency_code: 'MVR'
+                    },
+                    {
+                        flag: '🇲🇺', name: 'Маврикий', id: 'mu',
+                        cities: [{ name: 'Маврикий', icon: '🌴', sub: 'Порт-Луи, Бель-Мар, Флик-ан-Флак' }],
+                        emergency: { police: '999', ambulance: '114', fire: '115', taxi: 'По договорённости (нет счётчиков)' },
+                        socket: { type: 'G (UK)', volt: '230V', note: 'Нужен переходник типа G', need: true },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10%' }, { place: 'Такси', amount: '10-15%' }, { place: 'Гид', amount: '200-500 MUR' }],
+                        phrases: [{ ru: 'Привет', local: 'Bonjour / Bonzour', tr: 'Бон-жур' }, { ru: 'Спасибо', local: 'Merci / Mersi', tr: 'Мер-си' }, { ru: 'Помогите', local: 'Au secours!', tr: 'О-сэ-кур' }, { ru: 'Вкусно', local: 'C\'est délicieux', tr: 'Сэ-дэ-ли-сьё' }, { ru: 'Пожалуйста', local: 'S\'il vous plaît', tr: 'Силь-ву-плэ' }],
+                        customs: { in: ['Алкоголь до 2л', 'Табак до 200 сигарет'], out: ['Птицы и растения — сертификат', 'Сувениры — свободно'] },
+                        dresscode: 'Свободный. В церквях и мечетях — скромно.',
+                        region_feature: null,
+                        taxi_app: 'По договорённости (торгуйтесь заранее)',
+                        currency_code: 'MUR'
+                    },
+                    {
+                        flag: '🇸🇨', name: 'Сейшелы', id: 'sc',
+                        cities: [{ name: 'Сейшелы', icon: '🐢', sub: 'Маэ, Праслен, Ла-Диг — гранитные острова' }],
+                        emergency: { police: '999', ambulance: '151', fire: '999', taxi: 'По договорённости' },
+                        socket: { type: 'G (UK)', volt: '240V', note: 'Нужен переходник типа G', need: true },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10% (иногда включено)' }, { place: 'Гид', amount: '$10-20' }, { place: 'Такси', amount: '10%' }],
+                        phrases: [{ ru: 'Привет', local: 'Bonjour / Bonzour', tr: 'Бон-жур' }, { ru: 'Спасибо', local: 'Mersi', tr: 'Мер-си' }, { ru: 'Красиво', local: 'Zoli', tr: 'Зо-ли' }, { ru: 'Помогите', local: 'Sekou mwan!', tr: 'Сэ-ку-муан' }, { ru: 'Пожалуйста', local: 'Silvouplé', tr: 'Силь-ву-плэ' }],
+                        customs: { in: ['Алкоголь до 2л', 'Табак до 200 сигарет'], out: ['Кокос де мер — только с лицензией', 'Морские черепахи — запрещено'] },
+                        dresscode: 'Свободный на пляже и курортах.',
+                        region_feature: null,
+                        taxi_app: 'По договорённости / Take A Ride app',
+                        currency_code: 'SCR'
+                    }
+                ]
+            },
+            {
+                region: '🏔 Кавказ', countries: [
+                    {
+                        flag: '🇬🇪', name: 'Грузия', id: 'ge',
+                        cities: [
+                            { name: 'Тбилиси', icon: '🏙', sub: 'Старый город, Нарикала, серные бани' },
+                            { name: 'Аджария', icon: '🌊', sub: 'Батуми, черноморское побережье' },
+                            { name: 'Имеретия', icon: '🍷', sub: 'Кутаиси, пещера Прометея, вино' },
+                            { name: 'Мцхета-Мтианети', icon: '⛪', sub: 'Мцхета, Гудаури, Казбег' },
+                            { name: 'Самцхе-Джавахети', icon: '🏰', sub: 'Вардзия, Боржоми, Бакуриани' }
+                        ],
+                        emergency: { police: '112', ambulance: '112', fire: '112', taxi: 'Bolt / Yandex Go / maxim' },
+                        socket: { type: 'C/F', volt: '220V', note: 'Стандартные европейские розетки. Переходник не нужен.', need: false },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10%' }, { place: 'Такси', amount: 'Не принято' }, { place: 'Гид', amount: '20-30 GEL' }],
+                        phrases: [{ ru: 'Привет', local: 'გამარჯობა (Gamarjoba)', tr: 'Га-мар-джо-ба' }, { ru: 'Спасибо', local: 'გმადლობ (Gmadlob)', tr: 'Гма-длоб' }, { ru: 'Помогите', local: 'დამეხმარეთ', tr: 'Да-мех-ма-рет' }, { ru: 'Вкусно', local: 'გემრიელია (Gemrieli)', tr: 'Гем-ри-э-ли-а' }, { ru: 'Будьте здоровы', local: 'გაუმარჯოს (Gaumarjos)', tr: 'Гау-мар-джос' }],
+                        customs: { in: ['Вино до 3л (личное)', 'Табак до 200 сигарет', 'Валюта до $30 000'], out: ['Вино домашнее — до 10л', 'Антиквариат — разрешение'] },
+                        dresscode: 'В церквях — женщины покрывают голову и плечи, надевают юбку (дают при входе).',
+                        region_feature: { title: '🍷 Карта вин Грузии', text: 'Кахетия (восток) — главный регион: Цинандали, Мукузани, Киндзмараули, Хванчкара. Картли — Горули Мцване. Имеретия — янтарные вина. Лучшие домашние вина: покупайте у крестьян в Сигнахи или Телави. Чача (виноградная водка) — 60°, пробуйте осторожно.' },
+                        taxi_app: 'Bolt / Yandex Go / maxim',
+                        currency_code: 'GEL'
+                    }
+                ]
+            },
+            {
+                region: '🏜 Африка', countries: [
+                    {
+                        flag: '🇪🇬', name: 'Египет', id: 'eg',
+                        cities: [
+                            { name: 'Хургада', icon: '🏖', sub: 'Красное море, коралловые рифы, дайвинг' },
+                            { name: 'Шарм-эль-Шейх', icon: '🤿', sub: 'Наама Бэй, дайвинг, Рас-Мохаммед' },
+                            { name: 'Каир', icon: '🏛', sub: 'Пирамиды Гизы, Сфинкс, Египетский музей' }
+                        ],
+                        emergency: { police: '122', ambulance: '123', fire: '180', taxi: 'Uber / Careem / Didi Egypt' },
+                        socket: { type: 'C/F', volt: '220V', note: 'Европейские розетки. Переходник обычно не нужен.', need: false },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10%' }, { place: 'Гид', amount: '$10-15' }, { place: 'Носильщик', amount: '$1-2' }, { place: 'Охранник у пирамид', amount: '$1-2' }],
+                        phrases: [{ ru: 'Привет', local: 'أهلاً (Ahlan)', tr: 'Ах-лан' }, { ru: 'Спасибо', local: 'شكراً (Shukran)', tr: 'Шук-ран' }, { ru: 'Помогите', local: 'النجدة (El-Nagda)', tr: 'Эль-Наг-да' }, { ru: 'Слишком дорого', local: 'غالي جداً', tr: 'Гали-джиддан' }, { ru: 'Нет спасибо', local: 'لا شكراً (La shukran)', tr: 'Ла-шук-ран' }],
+                        customs: { in: ['Алкоголь до 1л (нем.)', 'Табак до 200 сигарет'], out: ['Антиквариат — ЗАПРЕЩЕНО без разрешения', 'Кораллы Красного моря — запрещено'] },
+                        dresscode: 'Курорты — свободно. Каир/Луксор — прикрытые плечи и колени для обоих. В мечетях — полное покрытие, снять обувь.',
+                        region_feature: { title: '🛍 Tax Free в Египте', text: 'В крупных магазинах и Mall of Arabia запрашивайте Tax Free чек. Возврат НДС (14%) оформляется в аэропорту, стойка Global Blue. Минимальная сумма — 1000 EGP. Паспорт обязателен при покупке.' },
+                        taxi_app: 'Uber / Careem / inDriver',
+                        currency_code: 'EGP'
+                    }
+                ]
+            },
+            {
+                region: '🇹🇷 Турция', countries: [
+                    {
+                        flag: '🇹🇷', name: 'Турция', id: 'tr',
+                        cities: [
+                            { name: 'Анталия', icon: '🏙', sub: 'Старый город Калеичи, Дюден водопад' },
+                            { name: 'Алания', icon: '🏰', sub: 'Замок, мыс Клеопатры, Красная башня' },
+                            { name: 'Белек', icon: '⛳', sub: 'Гольф-курорты, люксовые отели' },
+                            { name: 'Кемер', icon: '⛵', sub: 'Горы и море, Олимпос, ликийская тропа' },
+                            { name: 'Сиде', icon: '🏛', sub: 'Античные руины у моря, храм Аполлона' },
+                            { name: 'Стамбул', icon: '🕌', sub: 'Айя-София, Босфор, Гранд-Базар' }
+                        ],
+                        emergency: { police: '155', ambulance: '112', fire: '110', taxi: 'BiTaksi App / iTaksi' },
+                        socket: { type: 'C/F', volt: '220V', note: 'Европейские розетки. Переходник не нужен.', need: false },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10-15%' }, { place: 'Такси', amount: 'Округлить' }, { place: 'Отель (горничная)', amount: '20-30 TRY' }, { place: 'Тур-гид', amount: '50-100 TRY' }],
+                        phrases: [{ ru: 'Привет', local: 'Merhaba', tr: 'Мер-ха-ба' }, { ru: 'Спасибо', local: 'Teşekkürler', tr: 'Тэ-шэк-кюр-лер' }, { ru: 'Помогите', local: 'İmdat! / Yardım!', tr: 'Ям-дат' }, { ru: 'Слишком дорого', local: 'Çok pahalı', tr: 'Чок-па-ха-лы' }, { ru: 'Очень вкусно', local: 'Çok lezzetli', tr: 'Чок-лез-зет-ли' }],
+                        customs: { in: ['Алкоголь до 1л', 'Табак до 200 сигарет', 'Валюта — без ограничений'], out: ['Антиквариат — ЗАПРЕЩЕНО (тюрьма!)', 'Ковры старше 100 лет — разрешение'] },
+                        dresscode: 'В мечетях — плечи и колени закрыты, платок для женщин, снять обувь. Голубая мечеть — строгий контроль.',
+                        region_feature: { title: '🧾 Tax Free в Турции', text: 'Минимальная сумма в одном магазине — 108 TRY. Просите чек Tax Free (Global Blue или Planet). В аэропорту: сначала таможня (штамп), потом возврат денег в кассе. НДС 18% — возвращают 10-13% от суммы. Магазины-участники: логотип Tax Free на витрине.' },
+                        taxi_app: 'BiTaksi / iTaksi App',
+                        currency_code: 'TRY'
+                    }
+                ]
+            },
+            {
+                region: '🌍 Европа', countries: [
+                    {
+                        flag: '🌍', name: 'Европа (по запросу)', id: 'eu',
+                        cities: [{ name: 'Любой город Европы', icon: '🗺', sub: 'Напишите название — гид ответит' }],
+                        emergency: { police: '112', ambulance: '112', fire: '112', taxi: 'Uber / Bolt / Free Now' },
+                        socket: { type: 'C/F (тип E)', volt: '230V', note: 'Стандарт по всей Европе. Переходник нужен только из США/UK.', need: false },
+                        tips_gratuity: [{ place: 'Ресторан', amount: '10-15%' }, { place: 'Такси', amount: '10%' }, { place: 'Бар', amount: '€1-2 на стол' }, { place: 'Отель', amount: '€1-2/день' }],
+                        phrases: [{ ru: 'Привет', local: 'Hello / Bonjour / Hola', tr: 'Привет на местном' }, { ru: 'Спасибо', local: 'Thank you / Merci / Gracias', tr: 'Спасибо' }, { ru: 'Помогите', local: 'Help! / Au secours!', tr: 'Хелп' }, { ru: 'Где туалет?', local: 'Where is the toilet?', tr: 'Вэа-из-тойлет' }, { ru: 'Счёт пожалуйста', local: 'Check please / L\'addition', tr: 'Чек-плиз' }],
+                        customs: { in: ['Алкоголь до 1л крепкого', 'Табак до 200 сигарет', 'Еда ограничена — продукты ЕС'], out: ['Предметы старше 50 лет — декларировать', 'Лекарства — нужен рецепт'] },
+                        dresscode: 'Свободный. В соборах и церквях — закрытые плечи, иногда колени.',
+                        region_feature: null,
+                        taxi_app: 'Uber / Bolt / FreeNow',
+                        currency_code: 'EUR'
+                    }
+                ]
+            }
+        ];
+
+        // Currency data
+        const CURRENCIES = {
+            USD: { name: 'Доллар США', flag: '🇺🇸' },
+            EUR: { name: 'Евро', flag: '🇪🇺' },
+            RUB: { name: 'Рубль', flag: '🇷🇺' },
+            UZS: { name: 'Узбекский сум', flag: '🇺🇿' },
+            TRY: { name: 'Турецкая лира', flag: '🇹🇷' },
+            AED: { name: 'Дирхам ОАЭ', flag: '🇦🇪' },
+            THB: { name: 'Тайский бат', flag: '🇹🇭' },
+            GEL: { name: 'Грузинский лари', flag: '🇬🇪' },
+            EGP: { name: 'Египетский фунт', flag: '🇪🇬' },
+            IDR: { name: 'Индонезийская рупия', flag: '🇮🇩' },
+            MYR: { name: 'Малайзийский ринггит', flag: '🇲🇾' },
+            VND: { name: 'Вьетнамский донг', flag: '🇻🇳' },
+            QAR: { name: 'Катарский риял', flag: '🇶🇦' },
+            SGD: { name: 'Сингапурский доллар', flag: '🇸🇬' },
+            AZN: { name: 'Азербайджанский манат', flag: '🇦🇿' },
+            CNY: { name: 'Китайский юань', flag: '🇨🇳' },
+            MVR: { name: 'Мальдивская руфия', flag: '🇲🇻' },
+            MUR: { name: 'Маврикийская рупия', flag: '🇲🇺' },
+            SCR: { name: 'Сейшельская рупия', flag: '🇸🇨' },
+            GBP: { name: 'Британский фунт', flag: '🇬🇧' }
+        };
+
+        let rates = {};
+        let ratesUpdated = null;
+        let currentCountry = null;
+        let currentCity = null;
+        let chatHistory = [];
+        let busy = false;
+        let safeUnlocked = false;
+        let activeCurrCode = 'USD';
+
+        if (window.Telegram?.WebApp) { Telegram.WebApp.ready(); Telegram.WebApp.expand(); }
+
+        // ── BUILD DEST LIST ──
+        function buildDestList(filter) {
+            const el = document.getElementById('dest-list');
+            el.innerHTML = '';
+            const q = (filter || '').toLowerCase().trim();
+            DESTINATIONS.forEach(region => {
+                const matched = region.countries.filter(c => {
+                    if (!q) return true;
+                    if (c.name.toLowerCase().includes(q)) return true;
+                    return c.cities.some(city => city.name.toLowerCase().includes(q));
+                });
+                if (!matched.length) return;
+                const lbl = document.createElement('div');
+                lbl.className = 'region-lbl';
+                lbl.textContent = region.region;
+                el.appendChild(lbl);
+                matched.forEach(country => {
+                    const visibleCities = q ? country.cities.filter(c => c.name.toLowerCase().includes(q) || country.name.toLowerCase().includes(q)) : country.cities;
+                    const item = document.createElement('div');
+                    item.className = 'dest-item';
+                    const names = visibleCities.map(c => c.name).join(', ');
+                    item.innerHTML = `<div class="dest-flag">${country.flag}</div><div class="dest-info"><div class="dest-name">${country.name}</div><div class="dest-cities">${names.length > 55 ? names.slice(0, 55) + '…' : names}</div></div><div style="color:var(--tg-theme-hint-color,#888);font-size:18px">›</div>`;
+                    item.onclick = () => openCountry(country, q ? visibleCities : null);
+                    el.appendChild(item);
+                });
+            });
+        }
+
+        function filterDests(v) { buildDestList(v); }
+
+        function openCountry(country, filteredCities) {
+            currentCountry = country;
+            const cities = filteredCities || country.cities;
+            if (cities.length === 1) { startChat(country, cities[0]); return; }
+            document.getElementById('city-overlay-title').textContent = country.flag + ' ' + country.name;
+            const list = document.getElementById('city-list');
+            list.innerHTML = '';
+            cities.forEach(city => {
+                const el = document.createElement('div');
+                el.className = 'city-item';
+                el.innerHTML = `<div class="city-icon">${city.icon}</div><div><div class="city-nm">${city.name}</div><div class="city-sb">${city.sub}</div></div>`;
+                el.onclick = () => startChat(country, city);
+                list.appendChild(el);
+            });
+            document.getElementById('city-overlay').classList.add('show');
+        }
+
+        function closeCityOverlay() { document.getElementById('city-overlay').classList.remove('show'); }
+
+        function startChat(country, city) {
+            closeCityOverlay();
+            currentCountry = country;
+            currentCity = city;
+            chatHistory = [];
+
+            // Switch to main screen
+            document.getElementById('screen-dest').classList.remove('active');
+            document.getElementById('screen-main').classList.add('active');
+            document.getElementById('back-btn').classList.add('show');
+            document.getElementById('sos-hdr-btn').style.display = 'block';
+            document.getElementById('sos-fab').classList.add('show');
+            document.getElementById('hdr-title').textContent = country.flag + ' ' + city.name;
+            document.getElementById('hdr-sub').textContent = city.sub;
+
+            // Init chat
+            const chatEl = document.getElementById('chat-msgs');
+            chatEl.innerHTML = '';
+            addBubble('bot', `${country.flag} Добро пожаловать в ${city.name}!\n\nЯ ваш личный гид 24/7. Спрашивайте всё — рестораны, места, транспорт, советы. Всегда на связи!`);
+            const chips = document.createElement('div');
+            chips.className = 'chips';
+            [`Где поужинать в ${city.name}?`, `Что обязательно посмотреть?`, `Полезные советы туристу`].forEach(q => {
+                const c = document.createElement('span'); c.className = 'qc'; c.textContent = q; c.onclick = () => ask(q); chips.appendChild(c);
+            });
+            chatEl.appendChild(chips);
+            chatEl.scrollTop = 999999;
+
+            // Quick topics
+            const qr = document.getElementById('quick-row');
+            qr.innerHTML = [
+                { e: '🍽', t: 'Где поужинать?' }, { e: '📍', t: 'Что посмотреть?' }, { e: '🚕', t: 'Вызов такси' },
+                { e: '🛵', t: 'Аренда байка' }, { e: '🚗', t: 'Аренда авто' }, { e: '🏖', t: 'Лучшие пляжи' },
+                { e: '🛍', t: 'Шопинг' }, { e: '🌙', t: 'Ночная жизнь' }, { e: '💊', t: 'Аптека рядом' }, { e: '🤿', t: 'Активности' }
+            ].map(t => `<div class="qb" onclick="ask('${t.t}')">${t.e} ${t.t}</div>`).join('');
+
+            // Build tools
+            buildContextBanner();
+            buildCurrencySection();
+            buildEmergencySection();
+            buildCustomsSection();
+            buildDressCode();
+            buildSocketSection();
+            buildTipsSection();
+            buildPhrasesSection();
+            buildRegionalFeature();
+            buildSafeSection();
+            activeCurrCode = country.currency_code || 'USD';
+            loadRates();
+            switchTab('chat');
+        }
+
+        function goBack() {
+            document.getElementById('screen-main').classList.remove('active');
+            document.getElementById('screen-dest').classList.add('active');
+            document.getElementById('back-btn').classList.remove('show');
+            document.getElementById('sos-hdr-btn').style.display = 'none';
+            document.getElementById('sos-fab').classList.remove('show');
+            document.getElementById('hdr-title').textContent = 'Travel Guide 24/7';
+            document.getElementById('hdr-sub').textContent = 'Выберите страну и город';
+            document.getElementById('dest-search').value = '';
+            buildDestList();
+            currentCountry = null; currentCity = null; chatHistory = [];
+        }
+
+        function switchTab(tab) {
+            const tabs = ['chat', 'tools', 'docs', 'local', 'agency'];
+            tabs.forEach(t => {
+                document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+                const el = document.getElementById('tab-' + t + '-content');
+                el.classList.toggle('active', t === tab);
+                el.style.display = t === tab ? 'flex' : 'none';
+            });
+        }
+
+        // ── CONTEXT BANNER ──
+        function buildContextBanner() {
+            const c = currentCountry; const city = currentCity;
+            document.getElementById('ctx-dest-txt').textContent = `📍 ${city.name}, ${c.name}`;
+            const btns = document.getElementById('ctx-btns');
+            btns.innerHTML = '';
+            const items = [
+                { label: `🚕 ${c.taxi_app}`, action: `Как вызвать такси в ${city.name}?` },
+                { label: `💱 ${c.currency_code}`, action: 'currency' },
+                { label: '🚑 Экстренные', action: 'emergency' },
+                { label: '📍 Google Maps', action: 'maps' }
+            ];
+            items.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'ctx-btn'; btn.textContent = item.label;
+                btn.onclick = () => {
+                    if (item.action === 'currency') { switchTab('tools'); }
+                    else if (item.action === 'emergency') { switchTab('tools'); showToast('Прокрутите до экстренных номеров'); }
+                    else if (item.action === 'maps') { openMaps('google'); }
+                    else { switchTab('chat'); ask(item.action); }
+                };
+                btns.appendChild(btn);
+            });
+        }
+
+        // ── CURRENCY ──
+        async function loadRates() {
+            try {
+                const r = await fetch(`https://open.er-api.com/v6/latest/USD`);
+                const d = await r.json();
+                if (d.rates) { rates = d.rates; ratesUpdated = new Date(); }
+            } catch (e) {
+                // fallback static rates
+                rates = { EUR: 0.92, TRY: 32.5, AED: 3.67, THB: 35.8, GEL: 2.69, EGP: 49.0, IDR: 15800, MYR: 4.72, VND: 24500, QAR: 3.64, SGD: 1.34, AZN: 1.70, CNY: 7.24, MVR: 15.4, MUR: 46.5, SCR: 14.2, GBP: 0.79, UZS: 12750, RUB: 91.0 };
+            }
+            buildCurrencySection();
+            populateCurrSelects();
+            calcCurrency();
+            if (ratesUpdated) {
+                document.getElementById('curr-updated').textContent = 'Обновлено: ' + ratesUpdated.toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' });
+            }
+        }
+
+        function buildCurrencySection() {
+            const grid = document.getElementById('curr-grid');
+            if (!currentCountry) return;
+            const show = ['USD', 'EUR', currentCountry.currency_code, 'UZS'].filter((v, i, a) => a.indexOf(v) === i);
+            grid.innerHTML = show.map(code => {
+                const info = CURRENCIES[code] || { name: code, flag: '💱' };
+                const rate = rates[code] ? rates[code].toFixed(code === 'IDR' || code === 'VND' || code === 'UZS' ? 0 : 2) : '—';
+                return `<div class="curr-card" onclick="setCalcCurr('${code}')"><div class="curr-flag">${info.flag}</div><div class="curr-code">${code}</div><div class="curr-rate">${rate}</div><div class="curr-name">за 1 USD</div></div>`;
+            }).join('');
+        }
+
+        function populateCurrSelects() {
+            const from = document.getElementById('curr-from');
+            const to = document.getElementById('curr-to');
+            const all = ['USD', 'EUR', 'UZS', 'RUB', ...Object.keys(CURRENCIES)].filter((v, i, a) => a.indexOf(v) === i);
+            const opts = all.map(c => { const info = CURRENCIES[c] || { name: c, flag: '💱' }; return `<option value="${c}">${info.flag} ${c} — ${info.name}</option>`; }).join('');
+            from.innerHTML = opts; to.innerHTML = opts;
+            from.value = 'USD';
+            to.value = currentCountry?.currency_code || 'EUR';
+        }
+
+        function setCalcCurr(code) { activeCurrCode = code; const to = document.getElementById('curr-to'); to.value = code; calcCurrency(); switchTab('tools'); }
+
+        function calcCurrency() {
+            const from = document.getElementById('curr-from')?.value || 'USD';
+            const to = document.getElementById('curr-to')?.value || 'USD';
+            const amount = parseFloat(document.getElementById('curr-amount')?.value) || 0;
+            if (!rates[from] || !rates[to]) { document.getElementById('curr-result').textContent = 'Загрузка...'; return; }
+            const usd = amount / rates[from];
+            const result = usd * rates[to];
+            const info = CURRENCIES[to] || { name: to };
+            const fmt = result > 1000 ? result.toLocaleString('ru', { maximumFractionDigits: 0 }) : result.toFixed(2);
+            document.getElementById('curr-result').textContent = `${amount.toLocaleString('ru')} ${from} = ${fmt} ${to}`;
+        }
+
+        // ── EMERGENCY ──
+        function buildEmergencySection() {
+            const c = currentCountry; if (!c) return;
+            const em = c.emergency;
+            document.getElementById('emer-numbers').innerHTML = `
+    <div class="emer-card">
+      <div class="emer-hdr">🚨 ${c.flag} ${c.name}</div>
+      ${[['🚔 Полиция', em.police], ['🚑 Скорая', em.ambulance], ['🚒 Пожарная', em.fire], ['🚕 Такси/транспорт', em.taxi]].map(([l, v]) => `
+      <div class="emer-row"><span class="emer-label">${l}</span><div style="display:flex;align-items:center;gap:8px"><span class="emer-num">${v}</span>${v.match(/^\d+$/) && v.length <= 4 ? `<a href="tel:${v}" style="text-decoration:none"><button class="emer-call-btn">📞</button></a>` : ''}</div></div>`).join('')}
+    </div>`;
+        }
+
+        // ── CUSTOMS ──
+        function buildCustomsSection() {
+            const c = currentCountry; if (!c) return;
+            const cu = c.customs;
+            document.getElementById('customs-rules').innerHTML = `
+    <div class="rule-section">
+      <h4>✈️ Можно ввезти</h4>
+      ${cu.in.map(r => `<div class="rule-row"><span class="mark">✅</span>${r}</div>`).join('')}
+    </div>
+    <div class="rule-section">
+      <h4>🏠 Можно вывезти</h4>
+      ${cu.out.map(r => `<div class="rule-row"><span class="mark">📦</span>${r}</div>`).join('')}
+    </div>`;
+        }
+
+        function buildDressCode() {
+            const c = currentCountry; if (!c) return;
+            document.getElementById('dress-code').innerHTML = `<div style="font-size:13px;line-height:1.7">${c.dresscode}</div>`;
+        }
+
+        // ── SOCKET ──
+        function buildSocketSection() {
+            const c = currentCountry; if (!c) return;
+            const s = c.socket;
+            document.getElementById('socket-info').innerHTML = `
+    <div class="socket-row">
+      <div class="socket-icon">${s.need ? '🔌⚠️' : '🔌✅'}</div>
+      <div class="socket-info">
+        <div class="socket-type">Тип ${s.type}</div>
+        <div class="socket-volt">${s.volt} · ${s.note}</div>
+      </div>
+      <span class="need-badge ${s.need ? 'need-yes' : 'need-no'}">${s.need ? 'Нужен переходник' : 'Переходник не нужен'}</span>
+    </div>`;
+        }
+
+        // ── TIPS ──
+        function buildTipsSection() {
+            const c = currentCountry; if (!c) return;
+            document.getElementById('tips-info').innerHTML = c.tips_gratuity.map(t => `
+    <div class="tip-row"><div class="tip-emoji">💰</div><div class="tip-place">${t.place}</div><div class="tip-amount">${t.amount}</div></div>`).join('');
+        }
+
+        // ── PHRASES ──
+        function buildPhrasesSection() {
+            const c = currentCountry; if (!c) return;
+            document.getElementById('phrases-info').innerHTML = c.phrases.map((p, i) => `
+    <div class="phrase-item">
+      <div class="phrase-ru" style="flex:1">
+        <div style="font-size:14px">${p.ru}</div>
+        <div class="phrase-local">${p.local}</div>
+        <div class="phrase-tr">произношение: ${p.tr}</div>
+      </div>
+      <button class="speak-btn" onclick="speak('${p.tr}','${c.id}')" title="Произнести">🔊</button>
+    </div>`).join('');
+        }
+
+        function speak(text, langId) {
+            const langMap = { th: 'th-TH', vn: 'vi-VN', id: 'id-ID', my: 'ms-MY', sg: 'en-SG', cn: 'zh-CN', ge: 'ka-GE', tr: 'tr-TR', eg: 'ar-EG', uae: 'ar-AE', qatar: 'ar-QA', az: 'az-AZ', mv: 'dv', mu: 'fr-MU', sc: 'fr' };
+            const lang = langMap[langId] || 'en-US';
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = lang; u.rate = 0.8;
+                window.speechSynthesis.speak(u);
+            } else showToast('Аудио не поддерживается в браузере');
+        }
+
+        // ── REGIONAL FEATURE ──
+        function buildRegionalFeature() {
+            const c = currentCountry;
+            const el = document.getElementById('regional-feature');
+            if (!c || !c.region_feature) { el.innerHTML = ''; return; }
+            const f = c.region_feature;
+            el.innerHTML = `<div class="region-feature"><h4>${f.title}</h4><p>${f.text}</p></div>`;
+        }
+
+        // ── SAFE / DOCS ──
+        function buildSafeSection() {
+            const el = document.getElementById('safe-section');
+            if (!safeUnlocked) {
+                el.innerHTML = `<div class="safe-locked"><div class="lock-icon">🔐</div><p>Храните фото паспорта, страховки и ваучеров здесь. Доступ по паролю — работает даже офлайн.</p><button class="btn-primary" onclick="unlockSafe()">🔓 Открыть сейф</button></div>`;
+            } else {
+                el.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        ${['🛂 Загранпаспорт', '🏥 Страховка', '🎫 Ваучер тура', '💳 Копия карты', '✈️ Билеты', '🏨 Бронь отеля'].map(name => `
+        <div class="doc-item" onclick="showToast('Функция загрузки документов — в финальной версии')">
+          <div class="doc-emoji">${name.split(' ')[0]}</div>
+          <div><div class="doc-name">${name.split(' ').slice(1).join(' ')}</div><div class="doc-sub">Нажмите для загрузки</div></div>
+        </div>`).join('')}
+      </div>
+      <button class="btn-primary" style="width:100%;background:#888;font-size:12px" onclick="lockSafe()">🔒 Заблокировать сейф</button>`;
+            }
+        }
+
+        function unlockSafe() {
+            const pin = prompt('Введите PIN-код (или создайте новый):');
+            if (pin) { safeUnlocked = true; buildSafeSection(); }
+        }
+        function lockSafe() { safeUnlocked = false; buildSafeSection(); }
+
+        // ── MAPS ──
+        function openMaps(service) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const { latitude: lat, longitude: lng } = pos.coords;
+                    const url = service === 'google' ? `https://www.google.com/maps/@${lat},${lng},15z` : `http://maps.apple.com/?ll=${lat},${lng}&z=15`;
+                    window.open(url, '_blank');
+                }, () => {
+                    const url = service === 'google' ? `https://www.google.com/maps/search/${encodeURIComponent(currentCity?.name + ' ' + currentCountry?.name)}` : `http://maps.apple.com/?q=${encodeURIComponent(currentCity?.name)}`;
+                    window.open(url, '_blank');
+                });
+            } else {
+                const url = `https://www.google.com/maps/search/${encodeURIComponent(currentCity?.name + ' ' + currentCountry?.name)}`;
+                window.open(url, '_blank');
+            }
+        }
+
+        // ── SOS ──
+        function showSOS() { switchTab('agency'); }
+
+        // ── CHAT ──
+        function ask(q) { document.getElementById('msg-in').value = q; sendMsg(); }
+
+        async function sendMsg() {
+            if (busy) return;
+            const inp = document.getElementById('msg-in');
+            const txt = inp.value.trim(); if (!txt) return;
+            inp.value = '';
+            addBubble('user', txt);
+            chatHistory.push({ role: 'user', content: txt });
+            busy = true;
+            document.getElementById('snd').disabled = true;
+            document.getElementById('hdr-sub').textContent = 'печатает...';
+            const loader = addBubble('bot', 'думаю…', true);
+            try {
+                const res = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+                    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1000, system: buildSystem(), messages: chatHistory })
+                });
+                const data = await res.json();
+                const reply = data.content?.find(b => b.type === 'text')?.text || 'Попробуйте ещё раз.';
+                loader.remove();
+                addBubble('bot', reply);
+                chatHistory.push({ role: 'assistant', content: reply });
+                if (chatHistory.length > 20) chatHistory = chatHistory.slice(-16);
+            } catch (e) {
+                loader.textContent = 'Ошибка соединения.'; loader.classList.remove('typing');
+            }
+            busy = false;
+            document.getElementById('snd').disabled = false;
+            document.getElementById('hdr-sub').textContent = currentCity?.sub || '';
+        }
+
+        function buildSystem() {
+            const c = currentCountry; const city = currentCity;
+            return `Ты — персональный тревел-гид и консьерж 24/7. Текущее место: ${city?.name}, ${c?.name}.
+ПРАВИЛА:
+- НИКОГДА не упоминай цены, стоимость, суммы в любой валюте
+- Ты друг-местный, не продавец. Отвечай тепло и конкретно.
+- Для ресторанов: называй заведения по имени, атмосфера, фирменные блюда
+- Для мест: приоритеты, лучшее время посещения
+- Для транспорта: конкретные приложения (${c?.taxi_app || 'такси'})
+- Для аренды: советы что проверить, где лучше брать
+- Ответ 3-6 предложений. Язык — только русский.
+Экстренные: полиция ${c?.emergency?.police}, скорая ${c?.emergency?.ambulance}
+Связь с агентством: Telegram @voyagetrip, WhatsApp +998908810333`;
+        }
+
+        function addBubble(who, text, typing = false) {
+            const chat = document.getElementById('chat-msgs');
+            const wrap = document.createElement('div'); wrap.className = 'mw ' + (who === 'user' ? 'u' : 'b');
+            const bub = document.createElement('div'); bub.className = 'bub' + (typing ? ' typing' : ''); bub.textContent = text;
+            wrap.appendChild(bub);
+            if (who === 'bot' && !typing) { const ts = document.createElement('div'); ts.className = 'bts'; ts.textContent = new Date().toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' }); wrap.appendChild(ts); }
+            chat.appendChild(wrap); chat.scrollTop = 999999;
+            return bub;
+        }
+
+        // ── EXCURSION ──
+        function sendExcursionRequest() {
+            const name = document.getElementById('ex-name').value.trim();
+            const wish = document.getElementById('ex-wish').value.trim();
+            const date = document.getElementById('ex-date').value.trim();
+            if (!name || !wish) { showToast('Заполните имя и пожелание'); return; }
+            const msg = `Запрос на экскурсию\nИмя: ${name}\nНаправление: ${currentCity?.name || '—'}\nПожелание: ${wish}\nДата/состав: ${date || 'не указано'}`;
+            const encoded = encodeURIComponent(msg);
+            window.open(`https://t.me/voyagetrip?text=${encoded}`, '_blank');
+            showToast('Открываю Telegram...');
+            document.getElementById('ex-name').value = '';
+            document.getElementById('ex-wish').value = '';
+            document.getElementById('ex-date').value = '';
+        }
+
+        // ── TOAST ──
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // Init
+        buildDestList();
+    </script>
+</body>
+
+</html>
