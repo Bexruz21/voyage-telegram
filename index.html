@@ -715,6 +715,13 @@
             margin-top: 1px
         }
 
+        @media screen and (max-width: 1024px) {
+            .curr-calc_block {
+                display: flex;
+                flex-direction: column;
+            }
+        }
+
         /* CHAT */
         #chat-msgs {
             flex: 1;
@@ -1425,7 +1432,7 @@
                     </div>
                     <div class="curr-grid" id="curr-grid"></div>
                     <div class="curr-calc">
-                        <div style="display:flex;gap:7px;margin-bottom:7px">
+                        <div class="curr-calc_block" style="display:flex;gap:7px;margin-bottom:7px">
                             <select id="curr-from"
                                 style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(0,0,0,.12);font-size:12px;background:var(--tg-theme-secondary-bg-color,#f4f4f5);color:var(--tg-theme-text-color,#111);outline:none"></select>
                             <select id="curr-to"
@@ -1883,21 +1890,6 @@
                         taxi_app: 'BiTaksi / iTaksi App', currency_code: 'TRY'
                     }
                 ]
-            },
-            {
-                region: '🌍 Европа', regionIcon: 'i-globe', countries: [
-                    {
-                        flag: '🌍', name: 'Европа (по запросу)', id: 'eu',
-                        cities: [{ name: 'Любой город Европы', icon: '🗺', sub: 'Напишите название — гид ответит' }],
-                        emergency: { police: '112', ambulance: '112', fire: '112', taxi: 'Uber / Bolt / Free Now' },
-                        socket: { type: 'C/F (тип E)', volt: '230V', note: 'Стандарт по всей Европе. Переходник нужен только из США/UK.', need: false },
-                        tips_gratuity: [{ place: 'Ресторан', amount: '10-15%' }, { place: 'Такси', amount: '10%' }, { place: 'Бар', amount: '€1-2 на стол' }, { place: 'Отель', amount: '€1-2/день' }],
-                        phrases: [{ ru: 'Привет', local: 'Hello / Bonjour / Hola', tr: 'Привет на местном' }, { ru: 'Спасибо', local: 'Thank you / Merci / Gracias', tr: 'Спасибо' }, { ru: 'Помогите', local: 'Help! / Au secours!', tr: 'Хелп' }, { ru: 'Где туалет?', local: 'Where is the toilet?', tr: 'Вэа-из-тойлет' }, { ru: 'Счёт пожалуйста', local: "Check please / L'addition", tr: 'Чек-плиз' }],
-                        customs: { in: ['Алкоголь до 1л крепкого', 'Табак до 200 сигарет', 'Еда ограничена — продукты ЕС'], out: ['Предметы старше 50 лет — декларировать', 'Лекарства — нужен рецепт'] },
-                        dresscode: 'Свободный. В соборах и церквях — закрытые плечи, иногда колени.',
-                        region_feature: null, taxi_app: 'Uber / Bolt / FreeNow', currency_code: 'EUR'
-                    }
-                ]
             }
         ];
 
@@ -2254,3 +2246,5 @@
 </body>
 
 </html>
+
+curr-calc
